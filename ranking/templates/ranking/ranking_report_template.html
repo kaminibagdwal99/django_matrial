@@ -1,0 +1,216 @@
+{% load static %}
+{% load form_tags %}
+
+
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <style>
+        @page {
+            size: A4;
+            margin: 0;
+        }
+
+        body {
+            font-family: 'Times New Roman', Times, serif, sans-serif;
+            font-size: 10pt;
+            margin: 0;
+            padding: 0;
+        }
+
+        .cover {
+            position: relative;
+            height: 1122px;
+            width: 100%;
+            text-align: center;
+            padding-top: 60px;
+            box-sizing: border-box;
+        }
+
+        .cover img.logo {
+            height: 100px;  /* was 70px */
+            width: auto;
+            margin-bottom: 1px;  /* slight increase */
+        }
+
+        .cover h1 {
+            font-size: 24pt;
+            margin: 5px 0;
+        }
+
+        .cover h3 {
+            font-size: 14pt;
+            margin: 2px 0; /* was 8px */
+        }
+
+        .cover h4 {
+            font-size: 10pt;
+            margin: 4px 0;
+        }
+
+        .meta {
+            margin-top: 20px;
+            font-size: 11pt;
+        }
+
+        .meta p {
+            margin: 5px 0;
+        }
+
+        .footer-graphic {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+        }
+
+        .footer-graphic img {
+            width: 100%;
+            height: auto;
+            display: block;
+        }
+
+        .section {
+            margin-top: 20px;
+            margin-left: 10px;
+            page-break-before: always;
+        }
+
+        .section h2 {
+            font-size: 14pt;
+            margin-bottom: 10px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 10px;
+        }
+
+        th, td {
+            border: 1px solid #ccc;
+            padding: 6px;
+            font-size: 9pt;
+        }
+
+        th {
+            background-color: #f0f0f0;
+        }
+        .section-content {
+    text-align: justify;
+}
+
+    </style>
+</head>
+<body>
+
+<!-- === COVER PAGE === -->
+<div class="cover">
+    <img src="{% static 'img/logo.jpg' %}" class="logo" alt="Logo" />
+    <h3>Webplause Technology Pvt. Ltd.</h3>
+    <h3>Ranking Report</h3>
+
+    <div class="meta">
+        <h1><strong> {{ project.url }}</strong></h1>
+        <p><strong> {{ date_range }}</strong></p>
+        <h4><strong>Generated On:</strong> {{ generated_on }}</h4>
+    </div>
+
+    <!-- Footer Graphic -->
+    <div class="footer-graphic">
+        <img src="{% static 'img/cover_bg.jpg' %}" alt="Footer Graphic" />
+    </div>
+</div>
+
+<!-- === RANKINGS === -->
+<!-- === RANKINGS === -->
+{% for engine, data in rankings.items %}
+<div class="section">
+    <div class="section-content">
+        <table style="width: 100%; border: none; border-collapse: collapse; margin-top: 40px;">
+            <tr style="border: none;">
+                <td style="border: none; text-align: left; font-size: 14pt; font-weight: bold; color: #333;">
+                    <img src="{% static 'img/logo.jpg' %}" style="height: 15px; vertical-align: middle; margin-right: 4px;" />
+                </td>
+                <td style="border: none; text-align: right; font-size: 10pt; color: #333;">
+                    <div>
+                    Webplause
+                    </div>
+                    
+                </td>
+            </tr>
+        </table>
+    
+        <table style="width: 100%; border: none; border-collapse: collapse; margin-top: 40px;">
+            <tr style="border: none;">
+                <td style="border: none; text-align: left; font-size: 14pt; font-weight: bold; color: #333;">
+                    Rankings for the First and Last Period Dates
+                </td>
+                <td style="border: none; text-align: right; font-size: 10pt; color: #333;">
+                    <div>
+                        <img src="{% static 'img/domain-icon.png' %}" style="height: 12px; vertical-align: middle; margin-right: 4px;" />
+                    <h2> {{ project.url }}</h2>
+                    </div>
+                
+                </td>
+            </tr>
+        </table>
+
+        <!-- Logo Header -->
+        <table style="width: 100%; border: none; border-collapse: collapse; margin-top: 40px;">
+            <tr style="border: none;">
+                <td style="border: none; text-align: left; width: 20%; vertical-align: middle;">
+                    <img src="{% static 'img/' %}{{ data.logo }}" alt="{{ engine }} logo"
+                         style="height: 28px; max-height: 30px; width: auto; border: none;" />
+                </td>
+                <td style="border: none; text-align: left; width: 50%; font-size: 13pt; font-weight: bold; vertical-align: middle;">
+                    {{ engine }}
+                </td>
+                <td style="border: none; text-align: right; width: 30%; font-size: 10pt; color: gray; vertical-align: middle;">
+                    {{ date_range }}
+                </td>
+            </tr>
+        </table>
+        
+        
+
+        <!-- Table -->
+        <table style="width: 100%; border: none; border-collapse: collapse; margin-top: 10px;">
+            <thead>
+                <tr style="background-color: #f0f0f0; border: none;">
+                    <th style="width: 60%; border: none;">Keyword</th>
+                    <th style="width: 20%; border: none;">{{ date1 }}</th>
+                    <th style="width: 20%; border: none;">{{ date2 }}</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for row in data.rows %}
+                <tr style="background-color: {% cycle '#ffffff' '#f9f9f9' %}; border: none;">
+                    <td style="border: none;"><strong>{{ row.keyword }}</strong></td>
+                    <td><strong>{{ row.rank_date1 }}</strong></td>
+                    <td>
+                        <strong>{{ row.rank_date2 }}</strong>
+                        {% if row.change > 0 %}
+                            <span style="color: green;">▲<sup>{{ row.change }}</sup></span>
+                        {% elif row.change < 0 %}
+                            <span style="color: red;">▼<sup>{{ row.change|abs_value }}</sup></span>
+                        {% else %}
+                            <span style="color: gray;"></span>
+                        {% endif %}
+                    </td>
+
+                    
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+
+    </div>
+</div>
+{% endfor %}
+            
+
+
+</body>
+</html>

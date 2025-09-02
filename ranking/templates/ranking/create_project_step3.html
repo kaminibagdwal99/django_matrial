@@ -1,0 +1,104 @@
+{% extends "ranking/base_step.html" %}
+{% load widget_tweaks %}
+
+{% block step_content %}
+<div class="card shadow-sm border-0">
+  <div class="card-header bg-gradient-primary text-white">
+    <h5 class="mb-0">Step 3: Add Keywords</h5>
+  </div>
+
+  <div class="card-body">
+    <form id="keywordForm">
+      {% csrf_token %}
+      <div class="mb-3">
+        <label for="keywordInput" class="form-label">Enter one keyword per line</label>
+        <textarea name="keyword" id="keywordInput" class="form-control" rows="4" placeholder="e.g. digital marketing&#10;seo tools&#10;website audit"></textarea>
+        <button type="button" class="btn btn-outline-primary mt-3" onclick="addKeywords()">Add All</button>
+      </div>
+    </form>
+
+    <hr class="my-4">
+
+    <h6>Keywords Added to Project</h6>
+    <div class="table-responsive">
+      <table class="table table-bordered table-sm align-middle" id="keywordTable">
+        <thead class="table-light">
+          <tr>
+            <th>Keyword</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for kw in existing_keywords %}
+          <tr data-id="{{ kw.id }}">
+            <td>{{ kw.keyword }}</td>
+            <td>
+              <button class="btn btn-sm btn-danger" onclick="deleteKeyword({{ kw.id }})">Delete</button>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+
+    <div class="text-end mt-4">
+      <a href="{% url 'ranking:project_step2' %}" class="btn btn-outline-secondary">
+        <span class="material-symbols-rounded align-middle">arrow_back</span> Go Back
+      </a>
+      <a href="{% url 'ranking:project_list' %}" class="btn btn-primary px-4">
+        Finish <span class="material-symbols-rounded align-middle">check</span>
+      </a>
+    </div>
+  </div>
+</div>
+
+<script>
+function addKeywords() {
+  const input = document.getElementById('keywordInput');
+  const keywords = input.value.split('\n').map(k => k.trim()).filter(k => k.length > 0);
+  if (keywords.length === 0) return;
+
+  const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+
+  keywords.forEach(keyword => {
+    fetch("{% url 'ranking:ajax_add_keyword' %}", {
+      method: "POST",
+      headers: { 'X-CSRFToken': csrfToken },
+      body: new URLSearchParams({ keyword })
+    })
+    .then(res => res.json())
+    .then(data => {
+      if (data.success) {
+        const row = `
+          <tr data-id="${data.keyword.id}">
+            <td>${data.keyword.keyword}</td>
+            <td><button class="btn btn-sm btn-danger" onclick="deleteKeyword(${data.keyword.id})">Delete</button></td>
+          </tr>`;
+        document.querySelector("#keywordTable tbody").insertAdjacentHTML("beforeend", row);
+      } else {
+        console.warn("Failed to add:", keyword, data.error);
+      }
+    });
+  });
+
+  input.value = "";  // Clear textarea after processing
+}
+
+function deleteKeyword(id) {
+  const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+  fetch("{% url 'ranking:ajax_delete_keyword' %}", {
+    method: "POST",
+    headers: { 'X-CSRFToken': csrfToken },
+    body: new URLSearchParams({ keyword_id: id })
+  })
+  .then(res => res.json())
+  .then(data => {
+    if (data.success) {
+      document.querySelector(`#keywordTable tr[data-id="${id}"]`).remove();
+    } else {
+      alert(data.error || "Failed to delete keyword.");
+    }
+  });
+}
+</script>
+{% endblock %}

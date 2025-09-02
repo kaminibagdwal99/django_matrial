@@ -1,0 +1,121 @@
+{% extends "ranking/base_step.html" %}
+{% load widget_tweaks %}
+
+{% block step_content %}
+<div class="card shadow-sm border-0">
+  <div class="card-header bg-gradient-primary text-white">
+    <h5 class="mb-0">Step 2: Add Search Engines</h5>
+  </div>
+  <div class="card-body">
+    <form id="searchEngineForm">
+      {% csrf_token %}
+      <div class="row">
+        <div class="col-md-4 mb-3">
+          <label>Search Engine</label>
+          <select name="name" class="form-select">
+            <option value="Google">Google</option>
+            <option value="Google Mobile">Google Mobile</option>
+            <option value="Yahoo">Yahoo</option>
+            <option value="Bing">Bing</option>
+          </select>
+        </div>
+        <div class="col-md-4 mb-3">
+          <label>Country</label>
+          <input type="text" name="country" class="form-control">
+        </div>
+        <div class="col-md-4 mb-3">
+          <label>Language</label>
+          <input type="text" name="language" class="form-control">
+        </div>
+      </div>
+      <div>
+        <button type="button" class="btn btn-outline-primary" onclick="addSearchEngine()">Add Search Engine</button>
+      </div>
+    </form>
+
+    <hr class="my-4">
+
+    <h6>Search Engines Added to Project</h6>
+    <div class="table-responsive">
+      <table class="table table-bordered table-sm align-middle" id="engineTable">
+        <thead class="table-light">
+          <tr>
+            <th>Search Engine</th>
+            <th>Country</th>
+            <th>Language</th>
+            <th>Action</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for engine in existing_engines %}
+          <tr id="engine-row-{{ engine.id }}">
+            <td>{{ engine.name }}</td>
+            <td>{{ engine.country }}</td>
+            <td>{{ engine.language }}</td>
+            <td>
+              <button class="btn btn-sm btn-danger" onclick="deleteSearchEngine({{ engine.id }})">Delete</button>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+
+    <div class="text-end mt-4">
+      <a href="{% url 'ranking:project_step1' %}" class="btn btn-outline-secondary">Go Back</a>
+      <a href="{% url 'ranking:project_step3' %}" class="btn btn-primary">Next Step</a>
+    </div>
+  </div>
+</div>
+
+<script>
+function addSearchEngine() {
+  const form = document.getElementById('searchEngineForm');
+  const formData = new FormData(form);
+
+  fetch("{% url 'ranking:ajax_add_search_engine' %}", {
+    method: "POST",
+    headers: {
+      'X-CSRFToken': formData.get('csrfmiddlewaretoken')
+    },
+    body: formData
+  })
+  .then(response => response.json())
+  .then(data => {
+    if (data.success) {
+      const row = `
+        <tr id="engine-row-${data.engine.id}">
+          <td>${data.engine.name}</td>
+          <td>${data.engine.country}</td>
+          <td>${data.engine.language}</td>
+          <td>
+            <button class="btn btn-sm btn-danger" onclick="deleteSearchEngine(${data.engine.id})">Delete</button>
+          </td>
+        </tr>`;
+      document.querySelector('#engineTable tbody').insertAdjacentHTML('beforeend', row);
+      form.reset();
+    } else {
+      alert("Error: " + data.error);
+    }
+  });
+}
+
+function deleteSearchEngine(engineId) {
+  fetch(`/ranking/ajax/delete-search-engine/${engineId}/`, {
+    method: "POST",
+    headers: {
+      'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+    }
+  })
+  .then(response => response.json())
+  .then(data => {
+    if (data.success) {
+      const row = document.getElementById(`engine-row-${engineId}`);
+      if (row) row.remove();
+    } else {
+      alert("Failed to delete.");
+    }
+  });
+}
+</script>
+{% endblock %}

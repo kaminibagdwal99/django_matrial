@@ -1,0 +1,32 @@
+{% extends "ranking/base_step.html" %}
+{% load widget_tweaks %}
+
+{% block step_content %}
+<div class="card shadow-sm border-0">
+  <div class="card-header bg-gradient-primary text-white">
+    <h5 class="mb-0">Step 1: Project Info</h5>
+  </div>
+
+  <div class="card-body">
+    <form method="post">
+      {% csrf_token %}
+
+      <div class="input-group input-group-outline mb-4">
+        {{ form.name|add_class:"form-control" }}
+        <label class="form-label">Project Name</label>
+      </div>
+
+      <div class="input-group input-group-outline mb-4">
+        {{ form.url|add_class:"form-control" }}
+        <label class="form-label">Project URL</label>
+      </div>
+
+      <div class="text-end mt-4">
+        <button type="submit" class="btn btn-primary px-4">
+          Next <span class="material-symbols-rounded align-middle">arrow_forward</span>
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
+{% endblock %}

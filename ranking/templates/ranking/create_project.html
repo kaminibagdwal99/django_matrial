@@ -1,0 +1,19 @@
+<div class="row">
+    <div class="col-md-3">
+      <ul class="nav flex-column nav-pills">
+        <li class="nav-item mb-2">
+          <a class="nav-link {% if step == 1 %}active{% endif %}" href="?step=1">1. Project Info</a>
+        </li>
+        <li class="nav-item mb-2">
+          <a class="nav-link {% if step == 2 %}active{% endif %}" href="?step=2">2. Search Engines</a>
+        </li>
+        <li class="nav-item mb-2">
+          <a class="nav-link {% if step == 3 %}active{% endif %}" href="?step=3">3. Keywords</a>
+        </li>
+      </ul>
+    </div>
+    <div class="col-md-9">
+      {% include step_template %}
+    </div>
+  </div>
+  

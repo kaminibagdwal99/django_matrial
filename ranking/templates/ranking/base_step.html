@@ -1,0 +1,94 @@
+{% extends "layouts/base.html" %}
+{% load static %}
+{% load widget_tweaks %}
+
+{% block content %}
+<head>
+  <!-- Material Symbols -->
+  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded" rel="stylesheet" />
+
+  <style>
+    input.form-control {
+      border-radius: 0.4rem;
+      border: 1px solid #ced4da;
+    }
+    .card {
+      border-radius: 0.6rem;
+    }
+    .card-header {
+      border-top-left-radius: 0.6rem;
+      border-top-right-radius: 0.6rem;
+    }
+    .nav-step .nav-link {
+      display: flex;
+      align-items: center;
+      font-weight: 500;
+      padding: 10px 15px;
+      border-radius: 0.4rem;
+    }
+    .nav-step .nav-link .material-symbols-rounded {
+      margin-right: 8px;
+      font-size: 18px;
+    }
+    .nav-step .nav-link.active {
+      background: linear-gradient(87deg, #5e72e4, #825ee4);
+      color: white;
+    }
+    .progress-bar-container {
+      margin-bottom: 20px;
+    }
+    .progress-bar {
+      height: 6px;
+      background-color: #dee2e6;
+      border-radius: 3px;
+      overflow: hidden;
+    }
+    .progress-bar-fill {
+      height: 100%;
+      background-color: #5e72e4;
+      width: {% if step == 1 %}33{% elif step == 2 %}66{% elif step == 3 %}100{% else %}0{% endif %}%;
+      transition: width 0.3s ease-in-out;
+    }
+  </style>
+</head>
+
+<div class="container mt-4">
+  <h4 class="mb-3">Create Ranking Project</h4>
+
+  <!-- Top Progress Bar -->
+<div class="progress mb-4" style="height: 8px;">
+  <div class="progress-bar bg-primary"
+       role="progressbar"
+       style="width: {% if step == 'project_step1' %}33{% elif step == 'project_step2' %}66{% elif step == 'project_step3' %}100{% else %}0{% endif %}%; transition: width 0.3s ease-in-out;"
+       aria-valuenow="{% if step == 'project_step1' %}33{% elif step == 'project_step2' %}66{% elif step == 'project_step3' %}100{% else %}0{% endif %}"
+       aria-valuemin="0" aria-valuemax="100">
+  </div>
+</div>
+
+  <div class="row">
+    <div class="col-md-3">
+      <ul class="nav flex-column nav-pills nav-step">
+        <li class="nav-item mb-2">
+          <a class="nav-link {% if step == 'project_step1' %}active{% endif %}" href="{% url 'ranking:project_step1' %}">
+            <span class="material-symbols-rounded">info</span> Project Info
+          </a>
+        </li>
+        <li class="nav-item mb-2">
+          <a class="nav-link {% if step == 'project_step2' %}active{% endif %}" href="{% url 'ranking:project_step2' %}">
+            <span class="material-symbols-rounded">search</span> Search Engines
+          </a>
+        </li>
+        <li class="nav-item mb-2">
+          <a class="nav-link {% if step == 'project_step3' %}active{% endif %}" href="{% url 'ranking:project_step3' %}">
+            <span class="material-symbols-rounded">key</span> Keywords
+          </a>
+        </li>
+      </ul>
+    </div>
+
+    <div class="col-md-9">
+      {% block step_content %}{% endblock %}
+    </div>
+  </div>
+</div>
+{% endblock %}

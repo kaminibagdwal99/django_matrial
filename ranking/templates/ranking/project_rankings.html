@@ -1,0 +1,178 @@
+{% extends "layouts/base.html" %}
+{% load static %}
+{% load  form_tags %}  {# For get_item filter #}
+
+{% block content %}
+<meta name="csrf-token" content="{{ csrf_token }}">
+
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded" rel="stylesheet" />
+
+<div class="container-fluid py-4">
+
+  <!-- Report Header -->
+  <div class="row mb-4">
+    <div class="col-12">
+      <div class="d-flex justify-content-between align-items-center mb-4">
+        <h4 class="fw-bold text-dark">SEO Report for {{ project.name }}</h4>
+        <button id="fetch-rankings-btn" class="btn btn-primary">
+          <span class="material-symbols-rounded align-middle">refresh</span>
+          Fetch Latest Rankings
+        </button>
+      </div>
+      <div>
+        <a href="{% url 'ranking:project_ranking_pdf_report' project.id %}" class="btn btn-outline-primary btn-sm float-end">
+          <span class="material-symbols-rounded align-middle">assessment</span> Download Report
+        </a>
+      </div>
+    </div>
+  </div>
+
+  {% for engine, chart in chart_data.items %}
+  <!-- Engine Title -->
+  <div class="row mb-2">
+    <div class="col-md-12">
+      <h5 class="text-primary fw-bold">{{ engine }}</h5>
+    </div>
+  </div>
+
+  <!-- Engine-wise Chart -->
+  <div class="row mb-4">
+    <div class="col-md-12">
+      <div class="card shadow-sm border-0">
+        <div class="card-header pb-0">
+          <h6 class="mb-0">Keyword Ranking History</h6>
+        </div>
+        <div class="card-body pt-3">
+          <canvas id="chart_{{ forloop.counter }}" height="100"></canvas>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Engine-wise Ranking Table -->
+  <div class="row mt-2 mb-5">
+    <div class="col-md-12">
+      <div class="card shadow-sm border-0">
+        <div class="card-header pb-0">
+          <h6 class="mb-0">Keyword Rankings by Date</h6>
+        </div>
+        <div class="card-body pt-3 table-responsive">
+          {% with data=keyword_data_map|get_item:engine %}
+          {% if data %}
+          <table class="table table-bordered table-sm text-center align-middle">
+            <thead class="table-light">
+              <tr>
+                <th>Keyword</th>
+                {% for date in chart.labels %}
+                  <th>{{ date }}</th>
+                {% endfor %}
+              </tr>
+            </thead>
+            <tbody>
+              {% for keyword, trend in data.items %}
+              <tr>
+                <td class="text-start">{{ keyword }}</td>
+                {% for val in trend %}
+                <td>
+                  {% if val != None %}
+                    {{ val }}
+                  {% else %}
+                    <span class="text-muted">–</span>
+                  {% endif %}
+                </td>
+                {% endfor %}
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+          {% else %}
+            <p class="text-muted">No ranking data available for this engine.</p>
+          {% endif %}
+          {% endwith %}
+        </div>
+      </div>
+    </div>
+  </div>
+  {% endfor %}
+
+</div>
+{% endblock %}
+
+
+{% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+  const chartConfigs = {
+    {% for engine, chart in chart_data.items %}
+    "chart_{{ forloop.counter }}": {
+      labels: {{ chart.labels|safe }},
+      datasets: {{ chart.datasets|safe }}
+    },
+    {% endfor %}
+  };
+
+  Object.entries(chartConfigs).forEach(([id, config]) => {
+    new Chart(document.getElementById(id), {
+      type: 'line',
+      data: {
+        labels: config.labels,
+        datasets: config.datasets
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: { position: 'bottom' },
+          tooltip: { mode: 'index', intersect: false }
+        },
+        scales: {
+          y: {
+            reverse: true,
+            beginAtZero: false,
+            title: { display: true, text: 'Position' }
+          },
+          x: {
+            title: { display: true, text: 'Date' }
+          }
+        }
+      }
+    });
+  });
+</script>
+
+<script>
+  document.getElementById('fetch-rankings-btn').addEventListener('click', function () {
+    const btn = this;
+    const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+
+    btn.disabled = true;
+    btn.innerHTML = "Fetching...";
+
+    fetch("{% url 'ranking:fetch_rankings' project.id %}", {
+      method: "POST",
+      headers: {
+        "X-CSRFToken": csrfToken,
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({})
+    })
+    .then(response => response.json())
+    .then(data => {
+      if (data.success) {
+        alert("Ranking data updated!");
+        location.reload();
+      } else {
+        alert("Failed: " + data.error);
+      }
+    })
+    .catch(error => {
+      alert("An error occurred.");
+      console.error(error);
+    })
+    .finally(() => {
+      btn.disabled = false;
+      btn.innerHTML = `<span class="material-symbols-rounded align-middle">refresh</span> Fetch Latest Rankings`;
+    });
+  });
+</script>
+{% endblock %}

@@ -1,0 +1,164 @@
+{% extends "layouts/base.html" %}
+{% load static %}
+{% load widget_tweaks %}
+
+{% block content %}
+<div class="container mt-4">
+  <div class="row">
+    <div class="col-lg-10 mx-auto">
+      <form method="post">
+        {% csrf_token %}
+
+        <!-- Invoice Form -->
+        <div class="card mb-4">
+          <div class="card-header"><h5>Create Invoice</h5></div>
+          <div class="card-body">
+            <div class="row">
+              <div class="col-md-6 mb-3">
+                <label>Customer Name</label>
+                {{ invoice_form.customer_name|add_class:"form-control border border-dark" }}
+              </div>
+              <div class="col-md-6 mb-3">
+                <label>Customer Email</label>
+                {{ invoice_form.customer_email|add_class:"form-control border border-dark" }}
+              </div>
+              <div class="col-md-6 mb-3">
+                <label>Customer Phone</label>
+                {{ invoice_form.customer_phone|add_class:"form-control border border-dark" }}
+              </div>
+              <div class="col-md-6 mb-3">
+                <label>Customer Address</label>
+                {{ invoice_form.customer_address|add_class:"form-control border border-dark" }}
+              </div>
+            </div>
+
+            <hr>
+
+            <div class="row">
+              <div class="col-md-4 mb-3">
+                <label>Invoice No</label>
+                {{ invoice_form.invoice_no|add_class:"form-control border border-dark" }}
+              </div>
+              <div class="col-md-4 mb-3">
+                <label>Date</label>
+                {{ invoice_form.date|add_class:"form-control border border-dark" }}
+              </div>
+              <div class="col-md-4 mb-3">
+                <label>Duration</label>
+                {{ invoice_form.duration|add_class:"form-control border border-dark" }}
+              </div>
+              <div class="col-md-6 mb-3">
+                <label>Payment Option</label>
+                {{ invoice_form.payment_option|add_class:"form-control border border-dark" }}
+              </div>
+              <div class="col-md-6 mb-3">
+                <label>Payment Link</label>
+                {{ invoice_form.payment_link|add_class:"form-control border border-dark" }}
+              </div>
+              <div class="col-md-6 mb-3">
+                <label>Total</label>
+                {{ invoice_form.total|add_class:"form-control border border-dark" }}
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Service Items -->
+        <div class="card mb-4">
+          <div class="card-header">
+            <h5>Service Items</h5>
+          </div>
+          <div class="card-body">
+            {{ formset.management_form }}
+            <div id="formset-container">
+              {% for form in formset %}
+              <div class="formset-form border border-dark rounded p-3 mb-3">
+                <div class="row">
+                  <div class="col-md-3 mb-2">
+                    <label>Service</label>
+                    {{ form.service|add_class:"form-control border border-dark" }}
+                  </div>
+                  <div class="col-md-3 mb-2">
+                    <label>Project</label>
+                    {{ form.project|add_class:"form-control border border-dark" }}
+                  </div>
+                  <div class="col-md-2 mb-2">
+                    <label>Keywords</label>
+                    {{ form.keywords|add_class:"form-control border border-dark" }}
+                  </div>
+                  <div class="col-md-2 mb-2">
+                    <label>Datalinks</label>
+                    {{ form.datalinks|add_class:"form-control border border-dark" }}
+                  </div>
+                  <div class="col-md-2 mb-2">
+                    <label>Cost</label>
+                    {{ form.cost|add_class:"form-control border border-dark" }}
+                  </div>
+                </div>
+              </div>
+              {% endfor %}
+            </div>
+
+            <!-- 🔧 Hidden Template for New Forms -->
+            <div id="empty-form-template" style="display:none;">
+              <div class="formset-form border border-dark rounded p-3 mb-3">
+                <div class="row">
+                  <div class="col-md-3 mb-2">
+                    <label>Service</label>
+                    <input type="text" name="items-__prefix__-service" class="form-control border border-dark" id="id_items-__prefix__-service">
+                  </div>
+                  <div class="col-md-3 mb-2">
+                    <label>Project</label>
+                    <input type="text" name="items-__prefix__-project" class="form-control border border-dark" id="id_items-__prefix__-project">
+                  </div>
+                  <div class="col-md-2 mb-2">
+                    <label>Keywords</label>
+                    <input type="number" name="items-__prefix__-keywords" class="form-control border border-dark" id="id_items-__prefix__-keywords">
+                  </div>
+                  <div class="col-md-2 mb-2">
+                    <label>Datalinks</label>
+                    <input type="number" name="items-__prefix__-datalinks" class="form-control border border-dark" id="id_items-__prefix__-datalinks">
+                  </div>
+                  <div class="col-md-2 mb-2">
+                    <label>Cost</label>
+                    <input type="number" name="items-__prefix__-cost" step="0.01" class="form-control border border-dark" id="id_items-__prefix__-cost">
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <button type="button" class="btn btn-outline-dark btn-sm mt-2" id="add-form-btn">
+              + Add Another Service
+            </button>
+          </div>
+        </div>
+
+        <div class="text-end">
+          <button type="submit" class="btn btn-dark">Save Invoice</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<!-- ✅ JavaScript for dynamic formset -->
+<script>
+  document.addEventListener("DOMContentLoaded", function () {
+    const addBtn = document.getElementById("add-form-btn");
+    const formsetContainer = document.getElementById("formset-container");
+    const totalForms = document.getElementById("id_items-TOTAL_FORMS");
+    const emptyFormTemplate = document.getElementById("empty-form-template").innerHTML;
+
+    addBtn.addEventListener("click", function () {
+      const formCount = parseInt(totalForms.value);
+      const newFormHtml = emptyFormTemplate.replace(/__prefix__/g, formCount);
+      const tempDiv = document.createElement("div");
+      tempDiv.innerHTML = newFormHtml;
+      const newForm = tempDiv.firstElementChild;
+
+      formsetContainer.appendChild(newForm);
+      totalForms.value = formCount + 1;
+    });
+  });
+</script>
+{% endblock %}

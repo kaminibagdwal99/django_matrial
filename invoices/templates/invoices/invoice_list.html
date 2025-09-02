@@ -1,0 +1,40 @@
+{% extends 'layouts/base.html' %}
+
+{% block content %}
+<div class="card">
+  <div class="card-header">
+    <h5 class="mb-0">Invoice List</h5>
+  </div>
+  <div class="card-body">
+    <table class="table">
+      <thead>
+        <tr>
+          <th>Invoice #</th>
+          <th>Customer</th>
+          <th>Date</th>
+          <th>Total</th>
+          <th>Actions</th>  <!-- New column -->
+        </tr>
+      </thead>
+      <tbody>
+        {% for invoice in invoices %}
+        <tr>
+          <td>{{ invoice.invoice_no }}</td>
+          <td>{{ invoice.customer.name }}</td>
+          <td>{{ invoice.date }}</td>
+          <td>${{ invoice.total }}</td>
+          <td>
+            {% if invoice.pdf_file %}
+              <a href="{{ invoice.pdf_file.url }}" target="_blank" class="btn btn-sm btn-outline-primary">View</a>
+              <a href="{{ invoice.pdf_file.url }}" download class="btn btn-sm btn-outline-success">Download</a>
+            {% else %}
+              <span class="text-muted">No PDF</span>
+            {% endif %}
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}
